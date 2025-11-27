@@ -1,0 +1,13 @@
+{
+  "eslint.workingDirectories": [
+    "./backend"
+  ],
+  "typescript.tsdk": "backend/node_modules/typescript/lib",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  }
+}
