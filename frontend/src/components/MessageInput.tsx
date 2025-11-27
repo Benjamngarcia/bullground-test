@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from 'react';
+import { IconPaperclip, IconArrowUp, IconUsers, IconLayoutGrid, IconTrendingUp, IconFileText } from '@tabler/icons-react';
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
@@ -16,7 +17,7 @@ export default function MessageInput({ onSendMessage, disabled = false }: Messag
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
   }, [message]);
 
@@ -41,31 +42,10 @@ export default function MessageInput({ onSendMessage, disabled = false }: Messag
   const canSend = message.trim().length > 0 && !disabled;
 
   return (
-    <div className="border-t border-gray-800 bg-brand-dark">
-      <div className="px-6 py-4">
-        <div className="flex items-end gap-3">
-          <button
-            type="button"
-            className="flex-shrink-0 p-2 rounded-lg text-brand-text-muted hover:text-brand-text hover:bg-brand-gray transition-colors focus:outline-none focus:ring-2 focus:ring-brand-accent disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={disabled}
-            aria-label="Attach file"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-              />
-            </svg>
-          </button>
-
-          <div className="flex-1 relative">
+    <div className="border-t border-brand-border bg-brand-darker">
+      <div className="px-4 py-3 max-w-4xl mx-auto">
+        <div className="flex items-end gap-2 bg-zinc-900 rounded-xl border border-zinc-800 p-2">
+          <div className="flex-1 relative flex items-end">
             <textarea
               ref={textareaRef}
               value={message}
@@ -74,51 +54,55 @@ export default function MessageInput({ onSendMessage, disabled = false }: Messag
               placeholder="Ask WiMA anything you want..."
               disabled={disabled}
               rows={1}
-              className="w-full px-4 py-3 bg-brand-gray border border-gray-700 rounded-xl text-brand-text placeholder-brand-text-muted resize-none focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full px-3 py-2 bg-transparent text-sm text-zinc-100 placeholder-zinc-500 resize-none focus:outline-none disabled:opacity-50"
               style={{
-                minHeight: '48px',
-                maxHeight: '150px',
+                minHeight: '40px',
+                maxHeight: '120px',
               }}
-              aria-label="Message input"
             />
-
-            {message.length > 500 && (
-              <div className="absolute bottom-2 right-2 text-xs text-brand-text-muted">
-                {message.length}/1000
-              </div>
-            )}
           </div>
 
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={!canSend}
-            className={`flex-shrink-0 p-3 rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-brand-accent ${
-              canSend
-                ? 'bg-brand-accent hover:bg-brand-accent/90 text-white shadow-lg shadow-brand-accent/20 hover:shadow-brand-accent/30'
-                : 'bg-brand-gray text-brand-text-muted cursor-not-allowed'
-            }`}
-            aria-label="Send message"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              className="flex-shrink-0 p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors disabled:opacity-50"
+              disabled={disabled}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-              />
-            </svg>
-          </button>
+              <IconPaperclip size={18} stroke={1.5} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={!canSend}
+              className={`flex-shrink-0 p-2 rounded-lg transition-all ${
+                canSend
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                  : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+              }`}
+            >
+              <IconArrowUp size={18} stroke={2} />
+            </button>
+          </div>
         </div>
 
-        <div className="mt-2 text-xs text-brand-text-muted text-center">
-          Press <kbd className="px-1.5 py-0.5 bg-brand-gray border border-gray-700 rounded text-xs">Enter</kbd> to send,
-          <kbd className="px-1.5 py-0.5 bg-brand-gray border border-gray-700 rounded text-xs ml-1">Shift + Enter</kbd> for new line
+        <div className="mt-2 flex items-center justify-center gap-3 text-xs text-zinc-600">
+          <button className="flex items-center gap-1.5 hover:text-zinc-400 transition-colors">
+            <IconUsers size={14} stroke={1.5} />
+            <span>Users</span>
+          </button>
+          <button className="flex items-center gap-1.5 hover:text-zinc-400 transition-colors">
+            <IconLayoutGrid size={14} stroke={1.5} />
+            <span>Strategies</span>
+          </button>
+          <button className="flex items-center gap-1.5 hover:text-zinc-400 transition-colors">
+            <IconTrendingUp size={14} stroke={1.5} />
+            <span>Stocks</span>
+          </button>
+          <button className="flex items-center gap-1.5 hover:text-zinc-400 transition-colors">
+            <IconFileText size={14} stroke={1.5} />
+            <span>Insights</span>
+          </button>
         </div>
       </div>
     </div>
