@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './contexts/AuthContext';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import Sidebar from './components/Sidebar';
-import ChatWindow from './components/ChatWindow';
-import RightPanel from './components/RightPanel';
+import { useAuth } from './features/auth/contexts/AuthContext';
+import LoginPage from './features/auth/pages/LoginPage';
+import SignupPage from './features/auth/pages/SignupPage';
+import ProtectedRoute from './features/auth/components/ProtectedRoute';
+import MainLayout from './layouts/MainLayout';
+import ChatWindow from './features/chat/components/ChatWindow';
+import RightPanel from './features/portfolio/components/RightPanel';
 import './index.css';
 
 type AuthView = 'login' | 'signup';
@@ -35,21 +35,16 @@ function App() {
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen w-full bg-brand-darker overflow-hidden relative">
-        <Sidebar
-          onNewConversation={() => setCurrentConversationId(null)}
-          currentConversationId={currentConversationId}
+      <MainLayout
+        onNewConversation={() => setCurrentConversationId(null)}
+        currentConversationId={currentConversationId}
+        rightPanel={<RightPanel />}
+      >
+        <ChatWindow
+          conversationId={currentConversationId}
+          onConversationCreated={setCurrentConversationId}
         />
-
-        <main className="flex-1 flex flex-col min-w-0 max-w-2xl relative z-10">
-          <ChatWindow
-            conversationId={currentConversationId}
-            onConversationCreated={setCurrentConversationId}
-          />
-        </main>
-
-        <RightPanel />
-      </div>
+      </MainLayout>
     </ProtectedRoute>
   );
 }

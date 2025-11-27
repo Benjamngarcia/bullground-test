@@ -1,5 +1,5 @@
-import { apiClient } from '../lib/apiClient';
-import type { Message, Conversation } from '../types';
+import { apiClient } from '../../../lib/apiClient';
+import type { Message, Conversation } from '../../../types';
 
 interface SendMessageRequest {
   conversationId?: string | null;

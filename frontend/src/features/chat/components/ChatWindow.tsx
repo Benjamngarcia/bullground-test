@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import TypingIndicator from './TypingIndicator';
-import ScrollToBottom from './ScrollToBottom';
-import type { Message } from '../types';
+import ScrollToBottom from '../../../shared/components/ScrollToBottom';
+import type { Message } from '../../../types';
 import { sendMessage, getConversation } from '../api/chatApi';
 import { IconRobot } from '@tabler/icons-react';
 

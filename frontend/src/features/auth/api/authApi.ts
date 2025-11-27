@@ -1,5 +1,5 @@
-import { publicApiClient, apiClient } from '../lib/apiClient';
-import type { User, AuthResponse } from '../types';
+import { publicApiClient, apiClient } from '../../../lib/apiClient';
+import type { User, AuthResponse } from '../../../types';
 
 interface LoginCredentials {
   email: string;
