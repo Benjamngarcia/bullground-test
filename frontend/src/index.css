@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-dark: #18181b;
-  --color-brand-darker: #09090b;
-  --color-brand-gray: #27272a;
+  --color-brand-dark: #1a1a1a;
+  --color-brand-darker: #0a0a0a;
+  --color-brand-gray: #2a2a2a;
   --color-brand-accent: #00a294;
   --color-brand-text: #fafafa;
   --color-brand-text-muted: #a1a1aa;
-  --color-brand-border: #3f3f46;
+  --color-brand-border: #2a2a2a;
 }
 
 :root {
@@ -24,7 +24,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #09090b;
+  background-color: #0a0a0a;
   color: #fafafa;
   position: relative;
   overflow-x: hidden;

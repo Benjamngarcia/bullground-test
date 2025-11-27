@@ -43,7 +43,7 @@ export default function Sidebar({ onNewConversation }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-72 bg-brand-darker border-r border-brand-border flex flex-col relative z-10">
+    <aside className="w-72 bg-brand-dark border-r border-brand-border flex flex-col relative z-10">
       <div className="p-5 border-b border-brand-border">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 bg-zinc-800 rounded-md flex items-center justify-center">

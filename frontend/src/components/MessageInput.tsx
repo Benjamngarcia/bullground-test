@@ -42,9 +42,9 @@ export default function MessageInput({ onSendMessage, disabled = false }: Messag
   const canSend = message.trim().length > 0 && !disabled;
 
   return (
-    <div className="border-t border-brand-border bg-brand-darker">
-      <div className="px-4 py-3 max-w-4xl mx-auto">
-        <div className="flex items-end gap-2 bg-zinc-900 rounded-xl border border-zinc-800 p-2">
+    <div className="border-t border-brand-border bg-linear-to-t from-black/40 to-brand-darker/20 backdrop-blur-sm">
+      <div className="px-6 py-6 max-w-4xl mx-auto">
+        <div className="flex items-end gap-3 bg-zinc-900/80 rounded-2xl border border-zinc-800/50 p-3 shadow-lg">
           <div className="flex-1 relative flex items-end">
             <textarea
               ref={textareaRef}
@@ -54,53 +54,53 @@ export default function MessageInput({ onSendMessage, disabled = false }: Messag
               placeholder="Ask WiMA anything you want..."
               disabled={disabled}
               rows={1}
-              className="w-full px-3 py-2 bg-transparent text-sm text-zinc-100 placeholder-zinc-500 resize-none focus:outline-none disabled:opacity-50"
+              className="w-full px-4 py-3 bg-transparent text-base text-zinc-100 placeholder-zinc-500 resize-none focus:outline-none disabled:opacity-50"
               style={{
-                minHeight: '40px',
-                maxHeight: '120px',
+                minHeight: '56px',
+                maxHeight: '160px',
               }}
             />
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              className="flex-shrink-0 p-2 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors disabled:opacity-50"
+              className="flex-shrink-0 p-2.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors disabled:opacity-50"
               disabled={disabled}
             >
-              <IconPaperclip size={18} stroke={1.5} />
+              <IconPaperclip size={20} stroke={1.5} />
             </button>
 
             <button
               type="button"
               onClick={handleSend}
               disabled={!canSend}
-              className={`flex-shrink-0 p-2 rounded-lg transition-all ${
+              className={`flex-shrink-0 p-2.5 rounded-lg transition-all ${
                 canSend
-                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                  : 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
+                  ? 'bg-brand-accent hover:bg-brand-accent/80 text-white'
+                  : 'bg-zinc-800/50 text-zinc-600 cursor-not-allowed'
               }`}
             >
-              <IconArrowUp size={18} stroke={2} />
+              <IconArrowUp size={20} stroke={2} />
             </button>
           </div>
         </div>
 
-        <div className="mt-2 flex items-center justify-center gap-3 text-xs text-zinc-600">
-          <button className="flex items-center gap-1.5 hover:text-zinc-400 transition-colors">
-            <IconUsers size={14} stroke={1.5} />
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/30 transition-all">
+            <IconUsers size={16} stroke={1.5} />
             <span>Users</span>
           </button>
-          <button className="flex items-center gap-1.5 hover:text-zinc-400 transition-colors">
-            <IconLayoutGrid size={14} stroke={1.5} />
+          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/30 transition-all">
+            <IconLayoutGrid size={16} stroke={1.5} />
             <span>Strategies</span>
           </button>
-          <button className="flex items-center gap-1.5 hover:text-zinc-400 transition-colors">
-            <IconTrendingUp size={14} stroke={1.5} />
+          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/30 transition-all">
+            <IconTrendingUp size={16} stroke={1.5} />
             <span>Stocks</span>
           </button>
-          <button className="flex items-center gap-1.5 hover:text-zinc-400 transition-colors">
-            <IconFileText size={14} stroke={1.5} />
+          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/30 transition-all">
+            <IconFileText size={16} stroke={1.5} />
             <span>Insights</span>
           </button>
         </div>

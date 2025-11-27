@@ -74,12 +74,12 @@ export default function RightPanel() {
           gradient.addColorStop(1, "rgba(16, 185, 129, 0)");
           return gradient;
         },
-        borderColor: "#10b981",
+        borderColor: "#00a294",
         borderWidth: 2.5,
         tension: 0.4,
         pointRadius: 0,
         pointHoverRadius: 6,
-        pointHoverBackgroundColor: "#10b981",
+        pointHoverBackgroundColor: "#00a294",
         pointHoverBorderColor: "#fff",
         pointHoverBorderWidth: 2,
       },
@@ -166,7 +166,7 @@ export default function RightPanel() {
   };
 
   return (
-    <aside className="flex-1 bg-brand-darker border-l border-brand-border overflow-y-auto relative z-10">
+    <aside className="flex-1 bg-brand-dark border-l border-brand-border overflow-y-auto relative z-10">
       <div className="p-6 max-w-2xl">
         <h2 className="text-lg font-semibold text-white mb-5">Portfolio</h2>
 
@@ -247,7 +247,7 @@ export default function RightPanel() {
                 key={period}
                 className={`flex-1 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
                   period === activeTimePeriod
-                    ? "bg-emerald-600 text-white"
+                    ? "bg-brand-accent text-white"
                     : "text-zinc-500 hover:text-zinc-400 hover:bg-zinc-800"
                 }`}
               >
