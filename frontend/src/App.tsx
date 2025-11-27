@@ -35,13 +35,13 @@ function App() {
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen w-full bg-brand-darker overflow-hidden">
+      <div className="flex h-screen w-full bg-brand-darker overflow-hidden relative">
         <Sidebar
           onNewConversation={() => setCurrentConversationId(null)}
           currentConversationId={currentConversationId}
         />
 
-        <main className="flex-1 flex flex-col min-w-0">
+        <main className="flex-1 flex flex-col min-w-0 max-w-2xl relative z-10">
           <ChatWindow
             conversationId={currentConversationId}
             onConversationCreated={setCurrentConversationId}

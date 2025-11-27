@@ -4,7 +4,7 @@
   --color-brand-dark: #18181b;
   --color-brand-darker: #09090b;
   --color-brand-gray: #27272a;
-  --color-brand-accent: #10b981;
+  --color-brand-accent: #00a294;
   --color-brand-text: #fafafa;
   --color-brand-text-muted: #a1a1aa;
   --color-brand-border: #3f3f46;
@@ -26,6 +26,32 @@ body {
   min-height: 100vh;
   background-color: #09090b;
   color: #fafafa;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  right: -10%;
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -30%;
+  left: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 * {
