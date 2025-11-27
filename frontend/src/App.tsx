@@ -33,10 +33,15 @@ function App() {
     );
   }
 
+  const handleSelectConversation = (conversationId: string) => {
+    setCurrentConversationId(conversationId);
+  };
+
   return (
     <ProtectedRoute>
       <MainLayout
         onNewConversation={() => setCurrentConversationId(null)}
+        onSelectConversation={handleSelectConversation}
         currentConversationId={currentConversationId}
         rightPanel={<RightPanel />}
       >

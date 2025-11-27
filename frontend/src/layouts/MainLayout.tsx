@@ -5,6 +5,7 @@ interface MainLayoutProps {
   children: ReactNode;
   rightPanel?: ReactNode;
   onNewConversation: () => void;
+  onSelectConversation: (conversationId: string) => void;
   currentConversationId: string | null;
 }
 
@@ -12,12 +13,14 @@ export default function MainLayout({
   children,
   rightPanel,
   onNewConversation,
+  onSelectConversation,
   currentConversationId,
 }: MainLayoutProps) {
   return (
     <div className="flex h-screen w-full bg-brand-darker overflow-hidden relative">
       <Sidebar
         onNewConversation={onNewConversation}
+        onSelectConversation={onSelectConversation}
         currentConversationId={currentConversationId}
       />
 

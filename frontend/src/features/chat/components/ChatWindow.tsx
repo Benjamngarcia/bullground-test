@@ -15,6 +15,7 @@ interface ChatWindowProps {
 export default function ChatWindow({ conversationId, onConversationCreated }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
@@ -26,10 +27,15 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
     const loadMessages = async () => {
       if (!conversationId) {
         setMessages([]);
+        setIsLoadingConversation(false);
         return;
       }
 
       try {
+        setIsLoadingConversation(true);
+        setMessages([]); // Clear messages immediately for smooth transition
+        setError(null);
+
         const data = await getConversation(conversationId);
         setMessages(
           data.messages.map(msg => ({
@@ -41,6 +47,8 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
       } catch (err) {
         console.error('Error loading conversation:', err);
         setError('Failed to load conversation');
+      } finally {
+        setIsLoadingConversation(false);
       }
     };
 
@@ -138,7 +146,21 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
         className="flex-1 overflow-y-auto px-4 py-6"
       >
         <div className="max-w-4xl mx-auto space-y-6">
-          {messages.length === 0 && (
+          {isLoadingConversation ? (
+            <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 300px)' }}>
+              <div className="text-center max-w-md animate-fade-in">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                  <div className="w-8 h-8 border-2 border-brand-accent border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-2">
+                  Loading conversation...
+                </h3>
+                <p className="text-sm text-zinc-500">
+                  Please wait while we load your messages.
+                </p>
+              </div>
+            </div>
+          ) : messages.length === 0 && !conversationId ? (
             <div className="flex items-center justify-center" style={{ minHeight: 'calc(100vh - 300px)' }}>
               <div className="text-center max-w-md animate-fade-in">
                 <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
@@ -152,32 +174,34 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
                 </p>
               </div>
             </div>
+          ) : (
+            <>
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
+                  {error}
+                </div>
+              )}
+
+              {messages.map((message, index) => (
+                <MessageBubble
+                  key={message.id}
+                  message={message}
+                  isLastMessage={index === messages.length - 1}
+                  onRetry={() => handleRetry(message.id)}
+                />
+              ))}
+
+              {isTyping && <TypingIndicator />}
+
+              <div ref={messagesEndRef} />
+            </>
           )}
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
-          {messages.map((message, index) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              isLastMessage={index === messages.length - 1}
-              onRetry={() => handleRetry(message.id)}
-            />
-          ))}
-
-          {isTyping && <TypingIndicator />}
-
-          <div ref={messagesEndRef} />
         </div>
       </div>
 
       {showScrollButton && <ScrollToBottom onClick={scrollToBottom} />}
 
-      <MessageInput onSendMessage={handleSendMessage} disabled={isTyping} />
+      <MessageInput onSendMessage={handleSendMessage} disabled={isTyping || isLoadingConversation} />
     </div>
   );
 }

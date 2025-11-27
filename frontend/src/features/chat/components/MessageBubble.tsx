@@ -7,10 +7,32 @@ interface MessageBubbleProps {
   onRetry?: () => void;
 }
 
+const stripMarkdown = (text: string): string => {
+  return text
+    .replace(/\*\*\*/g, '')   // Remove ***text***
+    .replace(/\*\*/g, '')     // Remove **text**
+    .replace(/\*/g, '')       // Remove *text*
+    .replace(/___/g, '')      // Remove ___text___
+    .replace(/__/g, '')       // Remove __text__
+    .replace(/_/g, '')        // Remove _text_
+    // Remove headers
+    .replace(/^#+\s+/gm, '')
+    // Remove inline code
+    .replace(/`([^`]+)`/g, '$1')
+    // Remove code blocks
+    .replace(/```[\s\S]*?```/g, '')
+    // Remove links but keep text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove strikethrough
+    .replace(/~~(.+?)~~/g, '$1');
+};
+
 export default function MessageBubble({ message, onRetry }: MessageBubbleProps) {
   const isUser = message.role === 'user';
   const isError = message.status === 'error';
   const isSending = message.status === 'sending';
+
+  const cleanContent = isUser ? message.content : stripMarkdown(message.content);
 
   if (isUser) {
     return (
@@ -18,7 +40,7 @@ export default function MessageBubble({ message, onRetry }: MessageBubbleProps) 
         <div className="max-w-2xl">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3">
             <p className="text-sm text-zinc-100 leading-relaxed whitespace-pre-wrap">
-              {message.content}
+              {cleanContent}
             </p>
             {isSending && (
               <div className="mt-2 text-xs text-zinc-500">Sending...</div>
@@ -50,7 +72,7 @@ export default function MessageBubble({ message, onRetry }: MessageBubbleProps) 
           <span className="text-xs font-medium text-white">WiMA</span>
         </div>
         <div className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">
-          {message.content}
+          {cleanContent}
         </div>
       </div>
     </div>
