@@ -179,13 +179,59 @@ export default function ChatScreen() {
       console.error('Error sending message:', err);
       stopAnimation();
 
-      const errorMessage = err.response?.data?.error?.message || err.message || 'Failed to send message';
-      setError(errorMessage);
-      Alert.alert('Error', errorMessage);
+      const getFriendlyErrorMessage = (error: any): { title: string; message: string } => {
+        const errorMsg = error?.response?.data?.error?.message || error?.message || '';
 
-      // Remove streaming message and temp message on error
-      setMessages((prev) =>
-        prev.filter((msg) => msg.id !== assistantMessageId && msg.id !== tempId)
+        if (errorMsg.includes('Network') || errorMsg.includes('Failed to fetch') || error?.code === 'NETWORK_ERROR') {
+          return {
+            title: 'Connection Issue',
+            message: "It looks like there's a connection problem. Please check your internet and try again."
+          };
+        }
+        if (errorMsg.includes('timeout')) {
+          return {
+            title: 'Request Timeout',
+            message: "The request is taking longer than expected. Please try again in a moment."
+          };
+        }
+        if (errorMsg.includes('401') || errorMsg.includes('Unauthorized')) {
+          return {
+            title: 'Session Expired',
+            message: "Your session has expired. Please log in again."
+          };
+        }
+        return {
+          title: 'Oops!',
+          message: "Something went wrong, but don't worry! Would you like to try again?"
+        };
+      };
+
+      const friendlyError = getFriendlyErrorMessage(err);
+      setError(friendlyError.message);
+
+      // Show friendly alert with retry option
+      Alert.alert(
+        friendlyError.title,
+        friendlyError.message,
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => {
+              // Remove streaming message and temp message on cancel
+              setMessages((prev) =>
+                prev.filter((msg) => msg.id !== assistantMessageId && msg.id !== tempId)
+              );
+            }
+          },
+          {
+            text: 'Try Again',
+            onPress: () => {
+              setError(null);
+              handleSend(messageText);
+            }
+          }
+        ]
       );
     } finally {
       setIsSending(false);

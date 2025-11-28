@@ -49,22 +49,40 @@ export class ChatService {
       content: message,
     });
 
-    const recentMessages = await messageRepository.listRecentMessages(finalConversationId, 20);
-
-    const llmResponse = await llmService.generateReply({
-      messages: recentMessages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-    });
-
-    const assistantMessage = await messageRepository.createMessage({
-      conversationId: finalConversationId,
-      role: 'assistant',
-      content: llmResponse.content,
-    });
-
     await conversationRepository.updateConversationTimestamp(finalConversationId);
+
+    let assistantMessage: Message;
+
+    try {
+      const recentMessages = await messageRepository.listRecentMessages(finalConversationId, 20);
+
+      const llmResponse = await llmService.generateReply({
+        messages: recentMessages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+      });
+
+      assistantMessage = await messageRepository.createMessage({
+        conversationId: finalConversationId,
+        role: 'assistant',
+        content: llmResponse.content,
+      });
+    } catch (error) {
+      console.error('LLM generation failed, but conversation and user message are saved:', error);
+      assistantMessage = await messageRepository.createMessage({
+        conversationId: finalConversationId,
+        role: 'assistant',
+        content: "Something went wrong, but don't worry! Would you like to try again?",
+      });
+
+      const errorMessage = error instanceof Error ? error.message : 'LLM generation failed';
+      throw new ApiError(
+        500,
+        `Failed to generate response: ${errorMessage}. Your message was saved and you can retry later.`,
+        'LLM_GENERATION_ERROR'
+      );
+    }
 
     const response: SendMessageResponse = {
       conversationId: finalConversationId,
@@ -72,7 +90,10 @@ export class ChatService {
       assistantMessage,
     };
 
-    if (isNewConversation || recentMessages.length <= 10) {
+    if (
+      isNewConversation ||
+      (await messageRepository.listRecentMessages(finalConversationId, 10)).length <= 10
+    ) {
       const allMessages = await messageRepository.listMessages(finalConversationId);
       response.messages = allMessages;
     }
@@ -89,7 +110,8 @@ export class ChatService {
   ): AsyncGenerator<
     | { type: 'metadata'; data: { conversationId: string; userMessage: Message } }
     | { type: 'chunk'; data: string }
-    | { type: 'done'; data: { assistantMessage: Message } },
+    | { type: 'done'; data: { assistantMessage: Message } }
+    | { type: 'error'; data: { message: string } },
     void,
     unknown
   > {
@@ -101,7 +123,6 @@ export class ChatService {
 
     let finalConversationId: string;
 
-    // Create or get conversation
     if (!conversationId) {
       const title = this.generateConversationTitle(message);
       const newConversation = await conversationRepository.createConversation({
@@ -117,14 +138,14 @@ export class ChatService {
       finalConversationId = conversationId;
     }
 
-    // Create user message
     const userMessage = await messageRepository.createMessage({
       conversationId: finalConversationId,
       role: 'user',
       content: message,
     });
 
-    // Yield metadata first
+    await conversationRepository.updateConversationTimestamp(finalConversationId);
+
     yield {
       type: 'metadata',
       data: {
@@ -133,41 +154,59 @@ export class ChatService {
       },
     };
 
-    // Get recent messages for context
     const recentMessages = await messageRepository.listRecentMessages(finalConversationId, 20);
 
-    // Stream the LLM response
     let fullResponse = '';
-    for await (const chunk of llmService.generateStreamingReply({
-      messages: recentMessages.map((msg) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-    })) {
-      fullResponse += chunk;
+    try {
+      for await (const chunk of llmService.generateStreamingReply({
+        messages: recentMessages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+      })) {
+        fullResponse += chunk;
+        yield {
+          type: 'chunk',
+          data: chunk,
+        };
+      }
+
+      const assistantMessage = await messageRepository.createMessage({
+        conversationId: finalConversationId,
+        role: 'assistant',
+        content: fullResponse,
+      });
+
       yield {
-        type: 'chunk',
-        data: chunk,
+        type: 'done',
+        data: {
+          assistantMessage,
+        },
+      };
+    } catch (error) {
+      console.error('Streaming LLM generation failed, but user message is saved:', error);
+
+      const errorAssistantMessage = await messageRepository.createMessage({
+        conversationId: finalConversationId,
+        role: 'assistant',
+        content: "Something went wrong, but don't worry! Would you like to try again?",
+      });
+
+      yield {
+        type: 'error',
+        data: {
+          message:
+            'Failed to generate streaming response. Your message was saved and you can retry later.',
+        },
+      };
+
+      yield {
+        type: 'done',
+        data: {
+          assistantMessage: errorAssistantMessage,
+        },
       };
     }
-
-    // Save the complete assistant message
-    const assistantMessage = await messageRepository.createMessage({
-      conversationId: finalConversationId,
-      role: 'assistant',
-      content: fullResponse,
-    });
-
-    // Update conversation timestamp
-    await conversationRepository.updateConversationTimestamp(finalConversationId);
-
-    // Yield final message
-    yield {
-      type: 'done',
-      data: {
-        assistantMessage,
-      },
-    };
   }
 
   private generateConversationTitle(message: string): string {

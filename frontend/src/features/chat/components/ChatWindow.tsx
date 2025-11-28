@@ -5,7 +5,7 @@ import TypingIndicator from './TypingIndicator';
 import ScrollToBottom from '../../../shared/components/ScrollToBottom';
 import type { Message } from '../../../types';
 import { sendMessageStreaming, getConversation } from '../api/chatApi';
-import { IconRobot } from '@tabler/icons-react';
+import { IconRobot, IconAlertCircle, IconRefresh } from '@tabler/icons-react';
 
 interface ChatWindowProps {
   conversationId: string | null;
@@ -197,15 +197,41 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
         window.cancelAnimationFrame(animationFrame);
       }
 
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
-      setError(errorMessage);
+      // Friendly error message
+      const getFriendlyErrorMessage = (error: unknown): string => {
+        if (error instanceof Error) {
+          if (error.message.includes('Network') || error.message.includes('Failed to fetch')) {
+            return "It looks like there's a connection issue. Please check your internet and try again.";
+          }
+          if (error.message.includes('timeout')) {
+            return "The request is taking longer than expected. Please try again in a moment.";
+          }
+          if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+            return "Your session has expired. Please refresh the page and log in again.";
+          }
+        }
+        return "Something went wrong, but don't worry! Please try sending your message again.";
+      };
 
-      // Remove streaming message and mark user message as error
-      setMessages(prev =>
-        prev
-          .filter(msg => msg.id !== assistantMessageId)
-          .map(msg => (msg.id === tempId ? { ...msg, status: 'error' as const } : msg))
-      );
+      const friendlyMessage = getFriendlyErrorMessage(err);
+
+      // Remove streaming/temp messages and add a friendly WiMA error message
+      setMessages(prev => {
+        const filtered = prev.filter(msg => msg.id !== assistantMessageId && msg.id !== tempId);
+
+        // Add WiMA's friendly error message
+        const wimaErrorMessage: Message = {
+          id: `error-${Date.now()}`,
+          role: 'assistant',
+          content: friendlyMessage,
+          createdAt: new Date(),
+          status: 'error' as const,
+        };
+
+        return [...filtered, wimaErrorMessage];
+      });
+
+      setError(null); // Don't show error banner
     } finally {
       setIsTyping(false);
     }
@@ -257,8 +283,43 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
           ) : (
             <>
               {error && (
-                <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
-                  {error}
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-4 animate-fade-in">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                      <IconAlertCircle size={20} className="text-amber-400" stroke={1.5} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-amber-300 mb-1">
+                        Oops, something went wrong
+                      </h4>
+                      <p className="text-sm text-amber-200/80 mb-3">
+                        {error}
+                      </p>
+                      <button
+                        onClick={() => {
+                          setError(null);
+                          // Retry the last failed message
+                          const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+                          if (lastUserMessage) {
+                            handleSendMessage(lastUserMessage.content);
+                          }
+                        }}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-sm font-medium transition-colors"
+                      >
+                        <IconRefresh size={16} stroke={1.5} />
+                        Try Again
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => setError(null)}
+                      className="flex-shrink-0 text-amber-400/60 hover:text-amber-400 transition-colors"
+                      aria-label="Dismiss error"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M6 6L14 14M14 6L6 14" strokeLinecap="round" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               )}
 
