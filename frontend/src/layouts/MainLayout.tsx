@@ -17,7 +17,13 @@ export default function MainLayout({
   currentConversationId,
 }: MainLayoutProps) {
   return (
-    <div className="flex h-screen w-full bg-brand-darker overflow-hidden relative">
+    <div className="flex h-screen w-full overflow-hidden relative">
+      {/* Background image */}
+      <div
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/src/assets/bullgra-bg.svg')" }}
+      />
+
       <Sidebar
         onNewConversation={onNewConversation}
         onSelectConversation={onSelectConversation}

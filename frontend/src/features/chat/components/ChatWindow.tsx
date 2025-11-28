@@ -139,7 +139,7 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
   };
 
   return (
-    <div className="flex flex-col h-full bg-brand-dark">
+    <div className="flex flex-col h-full">
       <div
         ref={messagesContainerRef}
         onScroll={handleScroll}

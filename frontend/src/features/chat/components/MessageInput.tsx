@@ -42,10 +42,17 @@ export default function MessageInput({ onSendMessage, disabled = false }: Messag
   const canSend = message.trim().length > 0 && !disabled;
 
   return (
-    <div className="border-t border-brand-border bg-linear-to-t from-black/40 to-brand-darker/20 backdrop-blur-sm">
-      <div className="px-6 py-6 max-w-4xl mx-auto">
-        <div className="flex items-end gap-3 bg-zinc-900/80 rounded-2xl border border-zinc-800/50 p-3 shadow-lg">
-          <div className="flex-1 relative flex items-end">
+    <div className="px-6 pb-6 pt-3 max-w-4xl mx-auto">
+      <div className="flex flex-col gap-6">
+        {/* Main input container - rounded pill shape */}
+        <div className="relative">
+          <div
+            className="rounded-2xl border backdrop-blur-sm px-6 py-4"
+            style={{
+              backgroundColor: 'rgba(41, 41, 41, 0.5)',
+              borderColor: 'rgba(147, 147, 147, 0.3)',
+            }}
+          >
             <textarea
               ref={textareaRef}
               value={message}
@@ -53,54 +60,56 @@ export default function MessageInput({ onSendMessage, disabled = false }: Messag
               onKeyDown={handleKeyDown}
               placeholder="Ask WiMA anything you want..."
               disabled={disabled}
-              rows={1}
-              className="w-full px-4 py-3 bg-transparent text-base text-zinc-100 placeholder-zinc-500 resize-none focus:outline-none disabled:opacity-50"
+              rows={3}
+              className="w-full bg-transparent text-base text-zinc-400 placeholder-zinc-500 resize-none focus:outline-none disabled:opacity-50 pr-20 pb-10"
               style={{
-                minHeight: '56px',
+                minHeight: '80px',
                 maxHeight: '160px',
               }}
             />
-          </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="flex-shrink-0 p-2.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors disabled:opacity-50"
-              disabled={disabled}
-            >
-              <IconPaperclip size={20} stroke={1.5} />
-            </button>
+            {/* Buttons positioned in bottom right */}
+            <div className="absolute bottom-4 right-4 flex items-center gap-2">
+              <button
+                type="button"
+                className="shrink-0 p-2 rounded-full text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors disabled:opacity-50"
+                disabled={disabled}
+              >
+                <IconPaperclip size={18} stroke={1.5} />
+              </button>
 
-            <button
-              type="button"
-              onClick={handleSend}
-              disabled={!canSend}
-              className={`flex-shrink-0 p-2.5 rounded-lg transition-all ${
-                canSend
-                  ? 'bg-brand-accent hover:bg-brand-accent/80 text-white'
-                  : 'bg-zinc-800/50 text-zinc-600 cursor-not-allowed'
-              }`}
-            >
-              <IconArrowUp size={20} stroke={2} />
-            </button>
+              <button
+                type="button"
+                onClick={handleSend}
+                disabled={!canSend}
+                className={`shrink-0 p-2 rounded-full transition-all ${
+                  canSend
+                    ? 'bg-zinc-700 hover:bg-zinc-600 text-white'
+                    : 'bg-zinc-800/50 text-zinc-600 cursor-not-allowed'
+                }`}
+              >
+                <IconArrowUp size={18} stroke={2} />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/30 transition-all">
-            <IconUsers size={16} stroke={1.5} />
+        {/* Quick action buttons */}
+        <div className="flex items-center justify-center gap-3">
+          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-zinc-700/50 bg-zinc-900/30 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/40 transition-all backdrop-blur-sm">
+            <IconUsers size={18} stroke={1.5} />
             <span>Users</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/30 transition-all">
-            <IconLayoutGrid size={16} stroke={1.5} />
+          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-zinc-700/50 bg-zinc-900/30 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/40 transition-all backdrop-blur-sm">
+            <IconLayoutGrid size={18} stroke={1.5} />
             <span>Strategies</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/30 transition-all">
-            <IconTrendingUp size={16} stroke={1.5} />
+          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-zinc-700/50 bg-zinc-900/30 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/40 transition-all backdrop-blur-sm">
+            <IconTrendingUp size={18} stroke={1.5} />
             <span>Stocks</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-zinc-700 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/30 transition-all">
-            <IconFileText size={16} stroke={1.5} />
+          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-zinc-700/50 bg-zinc-900/30 text-sm text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800/40 transition-all backdrop-blur-sm">
+            <IconFileText size={18} stroke={1.5} />
             <span>Insights</span>
           </button>
         </div>

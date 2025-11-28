@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
-  IconChartBar,
-  IconUsers,
-  IconTarget,
-  IconBolt,
-  IconBook,
-  IconSquareRoundedPlus,
   IconMessage,
   IconDots,
+  IconBriefcase,
+  IconUserSquare,
+  IconUserSearch,
+  IconChartPie,
+  IconBook2,
+  IconEdit,
 } from '@tabler/icons-react';
 import { useAuth } from '../features/auth/contexts/AuthContext';
 import { getConversations } from '../features/chat/api/chatApi';
@@ -34,11 +34,11 @@ export default function Sidebar({ onNewConversation, currentConversationId, onSe
   };
 
   const navItems = [
-    { id: 'portfolio', label: 'Portfolio', Icon: IconChartBar },
-    { id: 'clients', label: 'Clients', Icon: IconUsers },
-    { id: 'leads', label: 'Leads', Icon: IconTarget },
-    { id: 'strategies', label: 'Strategies', Icon: IconBolt },
-    { id: 'resources', label: 'Resources', Icon: IconBook },
+    { id: 'portfolio', label: 'Portfolio', Icon: IconBriefcase },
+    { id: 'clients', label: 'Clients', Icon: IconUserSquare },
+    { id: 'leads', label: 'Leads', Icon: IconUserSearch },
+    { id: 'strategies', label: 'Strategies', Icon: IconChartPie },
+    { id: 'resources', label: 'Resources', Icon: IconBook2 },
   ];
 
   useEffect(() => {
@@ -97,9 +97,9 @@ export default function Sidebar({ onNewConversation, currentConversationId, onSe
   };
 
   return (
-    <aside className="w-72 bg-zinc-950 border-r border-zinc-900 flex flex-col relative z-10">
-      <div className="p-6">
-        <div className="flex items-center gap-3">
+    <aside className="w-80 bg-[#292929]/50 border-r border-linear-to-b from-[#939393] to-white backdrop-blur-[10px] shadow-[0_10px_0_0_rgba(0,0,0,0.15)] flex flex-col relative z-10" style={{ backdropFilter: 'blur(50px)' }}>
+      <div className="pt-9 pr-6 pb-6 pl-6">
+        <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-transparent border-2 border-white rounded flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
               <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -119,7 +119,7 @@ export default function Sidebar({ onNewConversation, currentConversationId, onSe
           onClick={onNewConversation}
           className="w-full px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium"
         >
-          <IconSquareRoundedPlus size={20} stroke={1.5} />
+          <IconEdit size={20} stroke={1.2} />
           <span>New conversation</span>
         </button>
       </div>
@@ -135,7 +135,7 @@ export default function Sidebar({ onNewConversation, currentConversationId, onSe
                 : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300'
             }`}
           >
-            <item.Icon size={20} stroke={1.5} />
+            <item.Icon size={20} stroke={1.2} />
             <span className="font-normal">{item.label}</span>
           </button>
         ))}
