@@ -13,7 +13,11 @@
       "Bash(npx tailwindcss:*)",
       "Bash(./node_modules/.bin/tailwindcss init:*)",
       "Bash(node -e:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(npx create-expo-app:*)",
+      "Bash(npx tsc:*)",
+      "Bash(find:*)",
+      "Bash(xargs cat:*)"
     ],
     "deny": [],
     "ask": []
