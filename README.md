@@ -71,3 +71,11 @@ npm install
 npm run ios
 ```
 ---
+
+**Cuenta de prueba**
+
+Se puede crear una cuenta desde la aplicación web, pero si quieren probar más fácil pueden entrar con:
+
+- email: benja@bullground.com
+- pass: 123456
+---
