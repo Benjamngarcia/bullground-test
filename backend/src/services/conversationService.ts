@@ -89,9 +89,6 @@ export class ConversationService {
       throw new ApiError(404, 'Conversation not found', 'CONVERSATION_NOT_FOUND');
     }
 
-    // Note: In production, you might want to implement soft deletes
-    // or cascade delete messages. For this implementation, we rely on
-    // Supabase's CASCADE DELETE constraint on the messages table.
     await conversationRepository.deleteConversation(conversationId, userId);
   }
 }

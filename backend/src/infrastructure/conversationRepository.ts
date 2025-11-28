@@ -31,6 +31,7 @@ export class ConversationRepository {
       .from(this.tableName)
       .select('*')
       .eq('user_id', userId)
+      .eq('deleted', false)
       .order('updated_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -45,7 +46,8 @@ export class ConversationRepository {
     const { count, error } = await supabase
       .from(this.tableName)
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .eq('deleted', false);
 
     if (error) {
       throw new ApiError(500, `Failed to count conversations: ${error.message}`, 'DB_ERROR');
@@ -60,6 +62,7 @@ export class ConversationRepository {
       .select('*')
       .eq('id', id)
       .eq('user_id', userId)
+      .eq('deleted', false)
       .single();
 
     if (error) {
@@ -85,9 +88,10 @@ export class ConversationRepository {
   }
 
   async deleteConversation(id: string, userId: string): Promise<void> {
+    // Soft delete: set deleted flag to true instead of actually deleting
     const { error } = await supabase
       .from(this.tableName)
-      .delete()
+      .update({ deleted: true, updated_at: new Date().toISOString() })
       .eq('id', id)
       .eq('user_id', userId);
 
