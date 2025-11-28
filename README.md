@@ -7,8 +7,8 @@ Hola! Esta es la recreación en web y mobile de Bullground Advisors usando un LL
 - `backend/` — API en Node/Express (TypeScript) que usa Supabase y Gemini.
 - `bullground-mobile/` — App móvil (Expo / React Native + TypeScript).
 
-![Web App](assets/screenshots/web-screenshot.jpeg)
-![Mobile App](assets/screenshots/mobile-screenshot.jpeg)
+![[Web App](assets/screenshots/web-screenshot.jpeg)](https://github.com/Benjamngarcia/bullground-test/blob/main/assets/screenshots/web_screenshot.jpeg)
+![[Mobile App](assets/screenshots/mobile-screenshot.jpeg)](https://github.com/Benjamngarcia/bullground-test/blob/main/assets/screenshots/mobile_screenshot.jpeg)
 
 
 ---
