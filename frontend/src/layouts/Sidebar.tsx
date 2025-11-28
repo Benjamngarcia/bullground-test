@@ -100,17 +100,7 @@ export default function Sidebar({ onNewConversation, currentConversationId, onSe
     <aside className="w-80 bg-[#292929]/50 border-linear-to-b from-[#939393] to-white backdrop-blur-[10px] shadow-[0_10px_0_0_rgba(0,0,0,0.15)] flex flex-col relative z-10" style={{ backdropFilter: 'blur(50px)' }}>
       <div className="pt-9 pr-6 pb-6 pl-6">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-transparent border-2 border-white rounded flex items-center justify-center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-white tracking-wide">BULLGROUND</h1>
-            <p className="text-xs text-zinc-400">Advisors</p>
-          </div>
+            <img src="https://bullground.app/logo-white.png" alt="Bullground logo" />
         </div>
       </div>
 
