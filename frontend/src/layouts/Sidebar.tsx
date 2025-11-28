@@ -8,9 +8,12 @@ import {
   IconChartPie,
   IconBook2,
   IconEdit,
+  IconX,
 } from '@tabler/icons-react';
 import { useAuth } from '../features/auth/contexts/AuthContext';
-import { getConversations } from '../features/chat/api/chatApi';
+import { getConversations, deleteConversation } from '../features/chat/api/chatApi';
+import Modal from '../shared/ui/Modal';
+import Button from '../shared/ui/Button';
 import type { Conversation } from '../types';
 
 interface SidebarProps {
@@ -24,6 +27,9 @@ export default function Sidebar({ onNewConversation, currentConversationId, onSe
   const [activeTab, setActiveTab] = useState('portfolio');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<Conversation | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -96,6 +102,41 @@ export default function Sidebar({ onNewConversation, currentConversationId, onSe
     }
   };
 
+  const handleDeleteClick = (conversation: Conversation, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConversationToDelete(conversation);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!conversationToDelete) return;
+
+    try {
+      setIsDeleting(true);
+      await deleteConversation(conversationToDelete.id);
+
+      // Remove from list
+      setConversations(prev => prev.filter(c => c.id !== conversationToDelete.id));
+
+      // If deleted conversation was active, clear selection
+      if (currentConversationId === conversationToDelete.id) {
+        onNewConversation();
+      }
+
+      setDeleteModalOpen(false);
+      setConversationToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteModalOpen(false);
+    setConversationToDelete(null);
+  };
+
   return (
     <aside className="w-80 bg-[#292929]/50 border-linear-to-b from-[#939393] to-white backdrop-blur-[10px] shadow-[0_10px_0_0_rgba(0,0,0,0.15)] flex flex-col relative z-10" style={{ backdropFilter: 'blur(50px)' }}>
       <div className="pt-9 pr-6 pb-6 pl-6">
@@ -141,29 +182,46 @@ export default function Sidebar({ onNewConversation, currentConversationId, onSe
           ) : conversations.length > 0 ? (
             <div className="space-y-1">
               {conversations.map((conversation) => (
-                <button
+                <div
                   key={conversation.id}
-                  onClick={() => onSelectConversation(conversation.id)}
-                  className={`w-full px-3 py-2.5 rounded-lg flex items-center justify-between gap-2 transition-colors text-sm group ${
+                  className={`relative group/item rounded-lg transition-colors ${
                     currentConversationId === conversation.id
-                      ? 'bg-zinc-800 text-white'
-                      : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300'
+                      ? 'bg-zinc-800'
+                      : 'hover:bg-zinc-900'
                   }`}
                 >
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="truncate text-sm">
-                      {formatConversationTitle(conversation)}
-                    </p>
-                    {conversation.messageCount !== undefined && conversation.messageCount > 0 && (
-                      <p className="text-xs text-zinc-600 mt-0.5">
-                        {conversation.messageCount} {conversation.messageCount === 1 ? 'message' : 'messages'}
+                  <div className="w-full px-3 py-2.5 flex items-center gap-2 text-sm">
+                    <button
+                      onClick={() => onSelectConversation(conversation.id)}
+                      className={`flex-1 min-w-0 text-left ${
+                        currentConversationId === conversation.id
+                          ? 'text-white'
+                          : 'text-zinc-400 group-hover/item:text-zinc-300'
+                      }`}
+                    >
+                      <p className="truncate text-sm">
+                        {formatConversationTitle(conversation)}
                       </p>
-                    )}
+                      {conversation.messageCount !== undefined && conversation.messageCount > 0 && (
+                        <p className="text-xs text-zinc-600 mt-0.5">
+                          {conversation.messageCount} {conversation.messageCount === 1 ? 'message' : 'messages'}
+                        </p>
+                      )}
+                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-xs text-zinc-600">
+                        {formatDate(conversation.updatedAt)}
+                      </span>
+                      <button
+                        onClick={(e) => handleDeleteClick(conversation, e)}
+                        className="p-1 rounded-md text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors"
+                        title="Delete conversation"
+                      >
+                        <IconX size={14} stroke={1.5} />
+                      </button>
+                    </div>
                   </div>
-                  <span className="text-xs text-zinc-600 flex-shrink-0">
-                    {formatDate(conversation.updatedAt)}
-                  </span>
-                </button>
+                </div>
               ))}
             </div>
           ) : (
@@ -192,6 +250,40 @@ export default function Sidebar({ onNewConversation, currentConversationId, onSe
           </button>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={handleCancelDelete}
+        title="Delete Conversation"
+      >
+        <div className="space-y-4">
+          <p className="text-zinc-300">
+            Are you sure you want to delete "{conversationToDelete ? formatConversationTitle(conversationToDelete) : ''}"?
+          </p>
+          <p className="text-sm text-zinc-500">
+            This action cannot be undone.
+          </p>
+
+          <div className="flex gap-3 justify-end pt-4">
+            <Button
+              variant="ghost"
+              onClick={handleCancelDelete}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </aside>
   );
 }
