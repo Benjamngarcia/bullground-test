@@ -46,12 +46,23 @@ class ApiClient {
         return response;
       },
       async (error: AxiosError) => {
-        console.error('[API Client] Response error:', error.response?.status, error.message);
+        // Check if we had a token in the request
+        const hadToken = error.config?.headers?.Authorization;
+
         if (error.response?.status === 401) {
-          // Token expired or invalid - clear token
-          console.log('[API Client] Clearing token due to 401');
-          await this.clearToken();
+          // Only log as error if we had a token (token expired/invalid)
+          // Otherwise it's expected (user not logged in)
+          if (hadToken) {
+            console.log('[API Client] 401 - Token expired or invalid, clearing token');
+            await this.clearToken();
+          } else {
+            console.log('[API Client] 401 - No authentication (expected for unauthenticated requests)');
+          }
+        } else {
+          // Log other errors normally
+          console.error('[API Client] Response error:', error.response?.status, error.message);
         }
+
         return Promise.reject(error);
       }
     );

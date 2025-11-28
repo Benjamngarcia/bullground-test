@@ -45,6 +45,57 @@ export class ChatController {
       next(error);
     }
   }
+
+  async postMessageStreaming(req: Request, res: Response, _next: NextFunction): Promise<void> {
+    try {
+      if (!req.userId) {
+        throw new ApiError(401, 'User not authenticated', 'UNAUTHORIZED');
+      }
+
+      const validationResult = postMessageSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        throw new ApiError(
+          400,
+          `Validation error: ${validationResult.error.errors.map((e) => e.message).join(', ')}`,
+          'VALIDATION_ERROR'
+        );
+      }
+
+      const { conversationId, message } = validationResult.data as PostMessageRequest;
+
+      // Set headers for Server-Sent Events
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.setHeader('X-Accel-Buffering', 'no'); // Disable buffering in nginx
+
+      // Stream the response
+      for await (const event of chatService.sendMessageStreaming({
+        userId: req.userId,
+        conversationId,
+        message,
+      })) {
+        // Send SSE formatted data
+        res.write(`data: ${JSON.stringify(event)}\n\n`);
+      }
+
+      // End the stream
+      res.write('data: [DONE]\n\n');
+      res.end();
+    } catch (error) {
+      // For streaming errors, send error event and close
+      if (error instanceof ApiError) {
+        res.write(
+          `data: ${JSON.stringify({ type: 'error', data: { message: error.message, code: error.code } })}\n\n`
+        );
+      } else {
+        res.write(
+          `data: ${JSON.stringify({ type: 'error', data: { message: 'Internal server error' } })}\n\n`
+        );
+      }
+      res.end();
+    }
+  }
 }
 
 export const chatController = new ChatController();

@@ -101,12 +101,47 @@ export class LlmService {
   }
 
   /**
-   * Placeholder for streaming functionality.
-   *
-   * Design note: Streaming could be implemented using Gemini's streamGenerateContent method.
-   * The implementation would return an async generator that yields chunks of text.
-   * This would require changes to the endpoint to support SSE or WebSocket.
+   * Generates a streaming reply from the LLM.
+   * Returns an async generator that yields chunks of text as they arrive.
    */
+  async *generateStreamingReply(
+    params: GenerateReplyParams
+  ): AsyncGenerator<string, void, unknown> {
+    const { messages, userContext } = params;
+
+    try {
+      const model = this.genAI.getGenerativeModel({ model: this.modelId });
+
+      const systemMessage = getSystemMessage(userContext);
+      const contents = this.buildGeminiContents(messages, systemMessage);
+
+      const result = await model.generateContentStream({
+        contents,
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        },
+      });
+
+      // Stream the response chunks
+      for await (const chunk of result.stream) {
+        const chunkText = chunk.text();
+        if (chunkText) {
+          yield chunkText;
+        }
+      }
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred with Gemini API';
+      throw new ApiError(500, `LLM streaming error: ${errorMessage}`, 'LLM_STREAMING_ERROR');
+    }
+  }
 }
 
 export const llmService = new LlmService();

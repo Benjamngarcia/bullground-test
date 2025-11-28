@@ -10,17 +10,19 @@ import {
   Text,
 } from 'react-native';
 import { Message } from '../../types';
-import { sendMessage, getConversations, getConversation } from '../../api/chatApi';
+import { sendMessageStreaming, getConversations, getConversation } from '../../api/chatApi';
 import MessageBubble from '../../components/chat/MessageBubble';
 import TypingIndicator from '../../components/chat/TypingIndicator';
 import ChatInput from '../../components/chat/ChatInput';
 import ScrollToBottomButton from '../../components/chat/ScrollToBottomButton';
 import { Colors, Spacing } from '../../constants/theme-bullground';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function ChatScreen() {
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -29,10 +31,12 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
   const isNearBottom = useRef(true);
 
-  // Load initial conversation
+  // Load initial conversation only when authenticated
   useEffect(() => {
-    loadConversation();
-  }, []);
+    if (isAuthenticated && !isAuthLoading) {
+      loadConversation();
+    }
+  }, [isAuthenticated, isAuthLoading]);
 
   const loadConversation = async () => {
     try {
@@ -59,56 +63,133 @@ export default function ChatScreen() {
   };
 
   const handleSend = async (messageText: string) => {
+    const tempId = `temp-${Date.now()}`;
+    const tempUserMessage: Message = {
+      id: tempId,
+      conversationId: conversationId || '',
+      role: 'user',
+      content: messageText,
+      createdAt: new Date(),
+    };
+
+    setMessages((prev) => [...prev, tempUserMessage]);
+    setError(null);
+    scrollToBottom(true);
+
+    let assistantMessageId: string | null = null;
+    let displayedContent = '';
+    let chunkBuffer: string[] = [];
+    let animationIntervalId: number | null = null;
+
+    // Character-by-character animation using setInterval
+    const startAnimation = () => {
+      if (animationIntervalId) return;
+
+      animationIntervalId = setInterval(() => {
+        if (chunkBuffer.length === 0 || !assistantMessageId) {
+          return;
+        }
+
+        const char = chunkBuffer.shift()!;
+        displayedContent += char;
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === assistantMessageId
+              ? { ...msg, content: displayedContent }
+              : msg
+          )
+        );
+
+        // Auto-scroll during typing if user is near bottom
+        if (isNearBottom.current) {
+          scrollToBottom(false);
+        }
+      }, 20); // 20ms between characters
+    };
+
+    const stopAnimation = () => {
+      if (animationIntervalId) {
+        clearInterval(animationIntervalId);
+        animationIntervalId = null;
+      }
+    };
+
     try {
       setIsSending(true);
-      setError(null);
-
-      // Optimistically add user message
-      const tempUserMessage: Message = {
-        id: `temp-${Date.now()}`,
-        conversationId: conversationId || '',
-        role: 'user',
-        content: messageText,
-        createdAt: new Date(),
-      };
-
-      setMessages((prev) => [...prev, tempUserMessage]);
-      scrollToBottom(true);
-
-      // Show typing indicator
       setIsTyping(true);
 
-      // Send message to API
-      const response = await sendMessage({
+      for await (const event of sendMessageStreaming({
         conversationId,
         message: messageText,
-      });
+      })) {
+        if (event.type === 'metadata') {
+          // Update user message with actual ID
+          setMessages((prev) => [
+            ...prev.filter((msg) => msg.id !== tempId),
+            event.userMessage,
+          ]);
 
-      // Update conversation ID if this was the first message
-      if (!conversationId) {
-        setConversationId(response.conversationId);
+          // Update conversation ID if new
+          if (!conversationId && event.conversationId) {
+            setConversationId(event.conversationId);
+          }
+
+          setIsTyping(false);
+
+          // Create placeholder for streaming assistant message
+          assistantMessageId = `streaming-${Date.now()}`;
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: assistantMessageId!,
+              conversationId: event.conversationId,
+              role: 'assistant' as const,
+              content: '',
+              createdAt: new Date(),
+            },
+          ]);
+          scrollToBottom(true);
+        } else if (event.type === 'chunk') {
+          // Add characters to buffer for animation
+          const chars = event.text.split('');
+          chunkBuffer.push(...chars);
+
+          // Start animation if not already running
+          if (!animationIntervalId) {
+            startAnimation();
+          }
+        } else if (event.type === 'done') {
+          // Stop animation and clear buffer
+          stopAnimation();
+          chunkBuffer = [];
+
+          // Replace streaming message with final message
+          setMessages((prev) => [
+            ...prev.filter((msg) => msg.id !== assistantMessageId),
+            event.assistantMessage,
+          ]);
+          scrollToBottom(true);
+        } else if (event.type === 'error') {
+          setError(event.message);
+          throw new Error(event.message);
+        }
       }
-
-      // Replace temp message with real messages
-      setMessages((prev) => {
-        const filtered = prev.filter((msg) => msg.id !== tempUserMessage.id);
-        return [...filtered, response.userMessage, response.assistantMessage];
-      });
-
-      setIsTyping(false);
-      scrollToBottom(true);
     } catch (err: any) {
-      setIsTyping(false);
-      const errorMessage = err.response?.data?.error?.message || 'Failed to send message';
+      console.error('Error sending message:', err);
+      stopAnimation();
+
+      const errorMessage = err.response?.data?.error?.message || err.message || 'Failed to send message';
       setError(errorMessage);
       Alert.alert('Error', errorMessage);
 
-      // Remove temp message on error
+      // Remove streaming message and temp message on error
       setMessages((prev) =>
-        prev.filter((msg) => !msg.id.startsWith('temp-'))
+        prev.filter((msg) => msg.id !== assistantMessageId && msg.id !== tempId)
       );
     } finally {
       setIsSending(false);
+      setIsTyping(false);
     }
   };
 
@@ -155,12 +236,14 @@ export default function ChatScreen() {
     return <View style={styles.listFooter} />;
   };
 
-  if (isLoading) {
+  if (isAuthLoading || isLoading) {
     return (
       <View style={styles.container}>
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={Colors.brand.primary} />
-          <Text style={styles.loadingText}>Loading conversation...</Text>
+          <Text style={styles.loadingText}>
+            {isAuthLoading ? 'Checking authentication...' : 'Loading conversation...'}
+          </Text>
         </View>
       </View>
     );

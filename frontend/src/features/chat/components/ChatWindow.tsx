@@ -4,7 +4,7 @@ import MessageInput from './MessageInput';
 import TypingIndicator from './TypingIndicator';
 import ScrollToBottom from '../../../shared/components/ScrollToBottom';
 import type { Message } from '../../../types';
-import { sendMessage, getConversation } from '../api/chatApi';
+import { sendMessageStreaming, getConversation } from '../api/chatApi';
 import { IconRobot } from '@tabler/icons-react';
 
 interface ChatWindowProps {
@@ -92,39 +92,119 @@ export default function ChatWindow({ conversationId, onConversationCreated }: Ch
     setMessages(prev => [...prev, userMessage]);
     setError(null);
 
+    let assistantMessageId: string | null = null;
+    let displayedContent = '';
+    let chunkBuffer: string[] = [];
+    let animationFrame: number | null = null;
+
+    // Character-by-character animation
+    const animateCharacters = () => {
+      if (chunkBuffer.length === 0 || !assistantMessageId) {
+        animationFrame = null;
+        return;
+      }
+
+      const char = chunkBuffer.shift()!;
+      displayedContent += char;
+
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === assistantMessageId
+            ? { ...msg, content: displayedContent }
+            : msg
+        )
+      );
+
+      // Continue animation with slight delay for typing effect
+      animationFrame = window.requestAnimationFrame(() => {
+        setTimeout(animateCharacters, 20); // 20ms between characters for smooth typing
+      });
+    };
+
     try {
       setIsTyping(true);
 
-      const response = await sendMessage({
+      for await (const event of sendMessageStreaming({
         conversationId: conversationId,
         message: content.trim(),
-      });
+      })) {
+        if (event.type === 'metadata') {
+          setMessages(prev => [
+            ...prev.filter(msg => msg.id !== tempId),
+            {
+              ...event.userMessage,
+              createdAt: new Date(event.userMessage.createdAt),
+              status: 'sent' as const,
+            },
+          ]);
 
-      setMessages(prev => [
-        ...prev.filter(msg => msg.id !== tempId),
-        {
-          ...response.userMessage,
-          createdAt: new Date(response.userMessage.createdAt),
-          status: 'sent' as const,
-        },
-        {
-          ...response.assistantMessage,
-          createdAt: new Date(response.assistantMessage.createdAt),
-          status: 'sent' as const,
-        },
-      ]);
+          // Update conversation ID if new
+          if (!conversationId && event.conversationId) {
+            onConversationCreated(event.conversationId);
+          }
 
-      if (!conversationId && response.conversationId) {
-        onConversationCreated(response.conversationId);
+          setIsTyping(false);
+
+          // Create placeholder for streaming assistant message
+          assistantMessageId = `streaming-${Date.now()}`;
+          setMessages(prev => [
+            ...prev,
+            {
+              id: assistantMessageId!,
+              role: 'assistant' as const,
+              content: '',
+              createdAt: new Date(),
+              status: 'sending' as const,
+            },
+          ]);
+        } else if (event.type === 'chunk') {
+          // Add characters to buffer for animation
+          const chars = event.text.split('');
+          chunkBuffer.push(...chars);
+
+          // Start animation if not already running
+          if (!animationFrame) {
+            animateCharacters();
+          }
+        } else if (event.type === 'done') {
+          // Cancel any pending animation
+          if (animationFrame) {
+            window.cancelAnimationFrame(animationFrame);
+          }
+
+          // Clear buffer and show final message immediately
+          chunkBuffer = [];
+
+          // Replace streaming message with final message
+          setMessages(prev => [
+            ...prev.filter(msg => msg.id !== assistantMessageId),
+            {
+              ...event.assistantMessage,
+              createdAt: new Date(event.assistantMessage.createdAt),
+              status: 'sent' as const,
+            },
+          ]);
+        } else if (event.type === 'error') {
+          setError(event.message);
+          throw new Error(event.message);
+        }
       }
     } catch (err) {
       console.error('Error sending message:', err);
 
+      // Cancel animation on error
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
       setError(errorMessage);
 
+      // Remove streaming message and mark user message as error
       setMessages(prev =>
-        prev.map(msg => (msg.id === tempId ? { ...msg, status: 'error' as const } : msg))
+        prev
+          .filter(msg => msg.id !== assistantMessageId)
+          .map(msg => (msg.id === tempId ? { ...msg, status: 'error' as const } : msg))
       );
     } finally {
       setIsTyping(false);
