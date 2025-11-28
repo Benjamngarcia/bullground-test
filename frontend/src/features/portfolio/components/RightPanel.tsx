@@ -1,30 +1,8 @@
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Filler,
-  Tooltip,
-  Legend,
-} from "chart.js";
 import PortfolioStats from "./PortfolioStats";
 import PortfolioLineChart from "./PortfolioLineChart";
 import PortfolioDoughnutChart from "./PortfolioDoughnutChart";
 import Card from "../../../shared/ui/Card";
 import Button from "../../../shared/ui/Button";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Filler,
-  Tooltip,
-  Legend
-);
 
 export default function RightPanel() {
   const portfolioData = {
@@ -42,8 +20,18 @@ export default function RightPanel() {
   const activeTimePeriod = "1M";
 
   const lineChartLabels = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
   const lineChartData = [
@@ -51,35 +39,49 @@ export default function RightPanel() {
   ];
 
   const portfolioDistribution = [
-    { label: "Equity", value: 40, color: "#71717a" },
-    { label: "Fixed Income", value: 60, color: "#52525b" },
+    { label: "Fixed Income", value: 60, color: "#171717" },
+    { label: "Equity", value: 40, color: "#434343" },
   ];
 
   return (
-    <aside className="flex-1 bg-brand-dark border-l border-brand-border overflow-y-auto relative z-10">
-      <div className="p-6 max-w-2xl">
+    <aside
+      className="flex-1 overflow-y-auto relative z-10 "
+      style={{
+        width: "560px",
+      }}
+    >
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundColor: "#292929",
+          opacity: "0.15",
+          backdropFilter: "blur(50px)",
+        }}
+      />
+
+      <div className="p-6 flex flex-col gap-2.5">
         <h2 className="text-lg font-semibold text-white mb-5">Portfolio</h2>
 
         <PortfolioStats data={portfolioData} />
 
-        <Card variant="elevated" className="p-5 mb-5 relative overflow-hidden">
-          <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl"></div>
-          <div className="relative">
-            <div className="mb-4">
-              <h3 className="text-xl font-bold text-white">
-                {portfolioData.currentValue}
-              </h3>
-              <div className="flex items-center gap-2 text-sm text-brand-accent">
-                <span>{portfolioData.growth.percentage}</span>
-                <span>{portfolioData.growth.amount}</span>
-              </div>
-              <p className="text-sm text-brand-text-muted mb-4">
-                Clients Portfolio Growth
-              </p>
+        <Card
+          variant="glassmorphic"
+          className="p-5 mb-5 relative overflow-hidden"
+        >
+          <div className="mb-4">
+            <h3 className="text-xl font-bold text-white">
+              {portfolioData.currentValue}
+            </h3>
+            <div className="flex items-center gap-2 text-sm text-brand-accent">
+              <span>{portfolioData.growth.percentage}</span>
+              <span>{portfolioData.growth.amount}</span>
             </div>
-
-            <PortfolioLineChart data={lineChartData} labels={lineChartLabels} />
+            <p className="text-sm text-brand-text-muted mb-4">
+              Clients Portfolio Growth
+            </p>
           </div>
+
+          <PortfolioLineChart data={lineChartData} labels={lineChartLabels} />
 
           <div className="flex gap-1.5">
             {timePeriods.map((period) => (
@@ -95,21 +97,14 @@ export default function RightPanel() {
           </div>
         </Card>
 
-        <Card variant="elevated" className="p-6 relative overflow-hidden">
-          <div className="absolute -left-6 -top-6 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl"></div>
-          <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl"></div>
-          <div className="relative">
-            <h3 className="text-xl font-bold text-white mb-1">
-              {portfolioData.currentValue}
-            </h3>
-            <p className="text-sm text-zinc-500 mb-8">
-              Client Portfolio Distribution
-            </p>
-
-            <div className="flex items-center justify-center mb-8 gap-8">
-              <PortfolioDoughnutChart distribution={portfolioDistribution} />
-            </div>
-          </div>
+        <Card variant="glassmorphic" className="p-6 relative overflow-hidden">
+          <h3 className="text-xl font-bold text-white mb-1">
+            {portfolioData.currentValue}
+          </h3>
+          <p className="text-sm text-zinc-500 mb-6">
+            Client Portfolio Distribution
+          </p>
+          <PortfolioDoughnutChart distribution={portfolioDistribution} />
         </Card>
       </div>
     </aside>

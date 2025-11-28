@@ -97,7 +97,7 @@ export default function Sidebar({ onNewConversation, currentConversationId, onSe
   };
 
   return (
-    <aside className="w-80 bg-[#292929]/50 border-r border-linear-to-b from-[#939393] to-white backdrop-blur-[10px] shadow-[0_10px_0_0_rgba(0,0,0,0.15)] flex flex-col relative z-10" style={{ backdropFilter: 'blur(50px)' }}>
+    <aside className="w-80 bg-[#292929]/50 border-linear-to-b from-[#939393] to-white backdrop-blur-[10px] shadow-[0_10px_0_0_rgba(0,0,0,0.15)] flex flex-col relative z-10" style={{ backdropFilter: 'blur(50px)' }}>
       <div className="pt-9 pr-6 pb-6 pl-6">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-transparent border-2 border-white rounded flex items-center justify-center">
