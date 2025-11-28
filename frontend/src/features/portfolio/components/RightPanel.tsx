@@ -45,7 +45,7 @@ export default function RightPanel() {
 
   return (
     <aside
-      className="flex-1 overflow-y-auto relative z-10 "
+      className="flex-1 overflow-y-auto relative z-10 h-full"
       style={{
         width: "560px",
       }}
