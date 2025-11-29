@@ -79,3 +79,48 @@ Se puede crear una cuenta desde la aplicación web, pero si quieren probar más 
 - email: benja@bullground.com
 - pass: 123456
 ---
+
+
+
+## Justificación de decisiones técnicas
+
+### Por qué Supabase
+
+- Supabase ofrece Postgres, autenticación, APIs y tooling razonable “out of the box”, lo que permite iterar muy rápido sin montar infraestructura desde cero.
+- Encaja bien con un modelo de datos sencillo centrado en:
+  - `conversations` y `messages` con relaciones claras.
+  - Posible uso futuro de RLS y multi-tenant si el proyecto creciera
+- Tradeoff:
+  - A cambio de velocidad de desarrollo, se acepta depender de un BaaS y de su modelo de permisos. Para un challenge técnico tan extenso en 2 días es una ventaja clara.
+
+### Por qué Express + TypeScript en el backend
+
+- Express es mínimo, conocido y suficientemente flexible para un API de chat sin sobre-ingeniería. 
+- TypeScript añade seguridad en el contrato entre backend, frontend y mobile (tipos compartidos de `Message`, `Conversation`, etc.)
+
+### Por qué Gemini como LLM
+
+- Gemini es un LLM generalista que encaja bien para generar respuestas largas y explicativas, ideal para un “asesor financiero” que debe razonar y matizar sus respuestas.
+- La integración se encapsula en un servicio de LLM, por lo que se podría cambiar por otro proveedor si hiciera falta.
+- Tradeoff:
+  - Se priorizó la simplicidad de integración ya que el objetivo aquí es demostrar flujo conversacional coherente, no construir un stack de IA completo.
+
+### Por qué React + Vite + TypeScript en el frontend
+
+- React + Vite permite:
+  - Arranque muy rápido
+  - Integración limpia con TypeScript y tooling moderno.
+- La UI se enfocó en:
+  - Flujo de chat cómodo (scroll controlado, estados de carga, errores).
+  - Microinteracciones ligeras en vez de animaciones pesadas
+- Tradeoff:
+  - No se usó un design system completo ni una librería de componentes pesada para mantener el código más transparente y centrado en el flujo de chat.
+
+### Por qué Expo + React Native en mobile
+
+- Expo da un flujo “baterías incluidas” para:
+  - Correr en iOS/Android sin peleas de configuración nativa.
+  - Integrar fácilmente herramientas como Expo Router, manejo de env, assets, etc
+- React Native + TypeScript facilita compartir tipos con la web y el backend (el mismo shape de Message)
+- Tradeoff:
+  - Se eligió el workflow managed de Expo en lugar de un setup customizado para ahorrar tiempo de configuración nativa
